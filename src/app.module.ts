@@ -1,4 +1,10 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
+import { AaaMiddleware } from './aaa.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PersonModule } from './person/person.module';
@@ -8,4 +14,14 @@ import { PersonModule } from './person/person.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // consumer.apply(AaaMiddleware).forRoutes('*');
+    consumer
+      .apply(AaaMiddleware)
+      .forRoutes({ path: 'hello*', method: RequestMethod.GET });
+    consumer
+      .apply(AaaMiddleware)
+      .forRoutes({ path: 'world2', method: RequestMethod.GET });
+  }
+}
