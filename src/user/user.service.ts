@@ -1,25 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { InjectEntityManager } from '@nestjs/typeorm';
-import { EntityManager } from 'typeorm';
+import {
+  InjectDataSource,
+  InjectEntityManager,
+  InjectRepository,
+} from '@nestjs/typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
+  // 注入EntityManager 需要每次调用时带上Entity
   @InjectEntityManager()
-  private userManager: EntityManager;
+  private manager: EntityManager;
+
+  // 在imports中引入 TypeOrmModule.forFeature([Entity])
+  @InjectRepository(User)
+  private userRepository: Repository<User>;
+
+  // 直接注入dataSource
+  @InjectDataSource()
+  private dataSource: DataSource;
 
   create(createUserDto: CreateUserDto) {
-    this.userManager.save(User, createUserDto);
+    this.manager.save(User, createUserDto);
   }
 
   findAll() {
-    return this.userManager.find(User);
+    // return this.manager.find(User);
+    // this.dataSource.getRepository(User).find()
+    return this.userRepository.find();
   }
 
   findOne(id: number) {
-    return this.userManager.findOne(User, {
+    return this.manager.findOne(User, {
       where: {
         id,
       },
@@ -27,13 +42,14 @@ export class UserService {
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
-    this.userManager.save(User, {
+    this.manager.save(User, {
       id,
       ...updateUserDto,
     });
   }
 
   remove(id: number) {
-    return this.userManager.delete(User, id);
+    // this.userRepository.delete(id)
+    return this.manager.delete(User, id);
   }
 }
