@@ -15,6 +15,7 @@ export class LoginGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
+    console.log('LoginGuard ==>')
     const request: Request = context.switchToHttp().getRequest();
     
     if(!request.session?.user){
