@@ -2,22 +2,28 @@ import {
   Body,
   Controller,
   Get,
+  Inject,
   Param,
   Post,
   Query,
   UploadedFiles,
-  UseInterceptors,
+  UseInterceptors
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import type { RedisClientType } from 'redis';
 import { PersonService } from './person.service';
-
 @Controller('api/person')
 export class PersonController {
   constructor(private readonly personService: PersonService) {}
 
+  @Inject('REDIS_CLIENT')
+  private redisClient: RedisClientType
+
   @Get('find')
-  query(@Query('name') name: string, @Query('age') age: number) {
+  async query(@Query('name') name: string, @Query('age') age: number) {
     console.log(typeof age);
+    const keys = await this.redisClient.keys('*')
+    console.log('keys',keys)
     return `get name: ${name}, age: ${age}`;
   }
 

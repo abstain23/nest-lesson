@@ -1,0 +1,33 @@
+version: '3'
+services:
+  nest-app:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    depends_on:
+      - mysql-container
+      - redis-container
+    ports:
+      - '3000:3000'
+  mysql-container:
+    image: 'mysql:latest' #使用的镜像
+    restart: always
+    container_name: nest_mysql #容器名
+    volumes:
+       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    #   - ./data:/var/lib/mysql #挂载目录，持久化存储
+    ports:
+      - '3306:3306'
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: '123456' #设置root用户的密码
+      LANG: 'C.UTF-8' # 解决中文无法输入问题
+  redis-container:
+    image: redis:latest
+    container_name: nest_redis
+    restart: always
+    command: redis-server
+    ports:
+      - "6379:6379"
+    # volumes:
+    #   - ./data:/data
