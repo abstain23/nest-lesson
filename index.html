@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.6/axios.min.js"></script>
+  </head>
+  <body>
+    <button id="btn">query</button>
+    <script>
+      const refreshQueue = [];
+      let pending = false;
+
+      axios.interceptors.request.use(function (config) {
+        const accessToken = localStorage.getItem('access_token');
+        console.log('request interceptors');
+
+        if (accessToken) {
+          config.headers.authorization = 'Bearer ' + accessToken;
+        }
+        return config;
+      });
+
+      axios.interceptors.response.use(
+        (response) => {
+          return response;
+        },
+        async (error) => {
+          let { data, config } = error.response;
+
+          if (
+            data.statusCode === 401 &&
+            !config.url.includes('/user/refresh')
+          ) {
+            const request = new Promise((resolve) => {
+              refreshQueue.push(() => resolve(axios(config)));
+            });
+            await refreshToken();
+            return request;
+          } else {
+            return error.response;
+          }
+        },
+      );
+
+      async function refreshToken() {
+        if (!pending) {
+          pending = true;
+          const res = await axios.get('http://localhost:3000/user/refresh', {
+            params: {
+              refresh_token: localStorage.getItem('refresh_token'),
+            },
+          });
+          localStorage.setItem('access_token', res.data.access_token);
+          localStorage.setItem('refresh_token', res.data.refresh_token);
+          while (refreshQueue.length > 0) {
+            refreshQueue.shift()();
+          }
+          pending = false;
+        }
+      }
+      async function login() {
+        const res = await axios.post('http://localhost:3000/user/login', {
+          username: 'cc',
+          password: '123456',
+        });
+        localStorage.setItem('access_token', res.data.access_token);
+        localStorage.setItem('refresh_token', res.data.refresh_token);
+      }
+
+      async function query() {
+        // await login();
+
+        if (!localStorage.getItem('access_token')) {
+          await login();
+        }
+
+        axios.get('http://localhost:3000/aaa').then((res) => {
+          console.log('aaa', res);
+        });
+        axios.get('http://localhost:3000/bbb').then((res) => {
+          console.log('bbb', res);
+        });
+      }
+      const btn = document.getElementById('btn');
+      btn.onclick = query;
+    </script>
+  </body>
+</html>
