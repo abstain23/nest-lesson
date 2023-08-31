@@ -1,11 +1,17 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PersonModule } from './person/person.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TaskService } from './task.service';
+import { AaaModule } from './aaa/aaa.module';
+
 
 @Module({
-  imports: [PersonModule],
+  imports: [
+    ScheduleModule.forRoot(),
+    AaaModule
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, TaskService],
 })
 export class AppModule {}
