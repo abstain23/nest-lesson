@@ -6,6 +6,12 @@
     <title>Document</title>
   </head>
   <body>
+    <script>
+      const es = new EventSource('http://127.0.0.1:3000/stream');
+      es.onmessage = (e) => {
+        console.log('e==>', e.data);
+      };
+    </script>
     <h1>public</h1>
   </body>
 </html>
